@@ -8,7 +8,7 @@ int red_button = 8;
 int yellow_button = 9;
 int green_button = 10;
 
-// Press LED
+// Button Status 
 
 int red_press = A4;
 int yellow_press = A5;
@@ -16,7 +16,7 @@ int green_press = 13;
 
 // 16*2 LCD...........
 int Contrast=95;
-LiquidCrystal lcd(12, 11, A0, A1, A2, A3);
+LiquidCrystal lcd(12, 11, A0, A1, A2, A3); // RS,E, d4, d5, d6, d7
 
 // Message to send for different buttons
 
@@ -26,7 +26,7 @@ char green_str[] = "Repaired";
 char fine[] = "All is Fine";
 
 
-// Blink LED
+// Status LED
 int red = 4;
 int yellow = 5;
 int green = 7;
@@ -42,7 +42,7 @@ void setup() {
   pinMode(green_press, OUTPUT);
   
   // LCD
-  analogWrite(6,Contrast);
+  analogWrite(6,Contrast); // V0 of LED
   lcd.begin(16, 2);
 
   // setup butttons
@@ -59,8 +59,10 @@ void setup() {
   Serial.begin(9600);
 }
 
+// ------------------ Maintanace -------------------------------
 void sendMessage(char *message)
 {
+    
  
     //Begin serial communication with Arduino and SIM900
     mySerial.begin(9600);
@@ -73,14 +75,36 @@ void sendMessage(char *message)
   
     mySerial.println("AT+CMGF=1"); // Configuring TEXT mode
     updateSerial();
-    mySerial.println("AT+CMGS=\"+91***********\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+    mySerial.println("AT+CMGS=\"+918699222208\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
     updateSerial();
     mySerial.print(message); //text content
     updateSerial();
     mySerial.write(26);
     printMe("SMS sent");
-   
+}
+
+// ------------------ Supervisor --------------------------------
+void sendOtherMessage(char *message)
+{
+    
  
+    //Begin serial communication with Arduino and SIM900
+    mySerial.begin(9600);
+  
+    Serial.println("Initializing..."); 
+    delay(1000);
+  
+    mySerial.println("AT"); //Handshaking with SIM900
+    updateSerial();
+  
+    mySerial.println("AT+CMGF=1"); // Configuring TEXT mode
+    updateSerial();
+    mySerial.println("AT+CMGS=\"+917973861409\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+    updateSerial();
+    mySerial.print(message); //text content
+    updateSerial();
+    mySerial.write(26);
+    printMe("SMS sent");
 }
 void updateSerial()
 {
@@ -154,7 +178,7 @@ void loop() {
       if (sms_count1<1 && digitalRead(red_button)== HIGH){
       sendMessage(red_str);  
       sms_count1++; 
-        }
+      }
       printMe(red_str);
       delay(700);
   }
@@ -165,10 +189,12 @@ void loop() {
       digitalWrite(yellow, HIGH);
       Serial.println("Yellow Button pressed..");
         if(sms_count2<1 && digitalRead(yellow_button)== HIGH)
-  {
-      sendMessage(yellow_str); 
+      {
+      //sendMessage(); 
+      sendOtherMessage(yellow_str);
+
       sms_count2++;
-  } 
+      } 
         
       printMe(yellow_str);
       delay(700);
@@ -179,10 +205,12 @@ void loop() {
       digitalWrite(green, HIGH);
       Serial.println("Green Button pressed..");
        if(sms_count3<1 && digitalRead(green_button)== HIGH)
-  {
-      sendMessage(green_str); 
+      {
+      //sendMessage(green_str); 
+       
+      sendOtherMessage(green_str);
        sms_count3++;
-  }
+      }
       printMe(green_str);
       delay(700);
   }
@@ -199,4 +227,4 @@ void loop() {
       delay(100);
       //lcd.clear();
   }
-}
+} 
